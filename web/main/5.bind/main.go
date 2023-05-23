@@ -3,50 +3,46 @@ package main
 import "github.com/gin-gonic/gin"
 
 type UserInfo struct {
-	Name string `json:"name" from:"name" uri:"name"`
-	Age  int    `json:"age" from:"age" uri:"age"`
-	Sex  string `json:"sex" from:"sex" uri:"sex"`
+	Name string `json:"name" form:"name" uri:"name"`
+	Age  int    `json:"age" form:"age" uri:"age"`
+	Sex  string `json:"sex" form:"sex" uri:"sex"`
 }
 
 func main() {
 	r := gin.Default()
-	r.POST("/bind", func(context *gin.Context) {
-		var userInfo UserInfo
-		err := context.ShouldBindJSON(userInfo)
-		if err != nil {
-			context.JSON(200, gin.H{"msg": "err"})
-			return
+	r.POST("/bind", func(c *gin.Context) {
+		var user UserInfo
+		if c.BindJSON(&user) == nil {
+			c.JSON(200, gin.H{"status": "ok", "user": user})
+		} else {
+			c.JSON(400, gin.H{"status": "error"})
 		}
-		context.JSON(200, gin.H{
-			"userInfo": userInfo,
-		})
 	})
-	r.POST("/query", func(context *gin.Context) {
+	r.GET("/query", func(context *gin.Context) {
 		var userInfo UserInfo
-		err := context.ShouldBindQuery(userInfo)
-		if err != nil {
-			context.JSON(200, gin.H{"msg": "err"})
-			return
+		// Bind query string 数据到userInfo变量
+		if err := context.ShouldBindQuery(&userInfo); err == nil {
+			context.JSON(200, gin.H{"status": "ok", "userInfo": userInfo})
+		} else {
+			context.JSON(400, gin.H{"status": "error"})
 		}
-		context.JSON(200, userInfo)
 	})
+
 	r.POST("/uri", func(context *gin.Context) {
 		var userInfo UserInfo
-		err := context.ShouldBindUri(userInfo)
-		if err != nil {
-			context.JSON(200, gin.H{"msg": "err"})
-			return
+		if err := context.ShouldBindUri(&userInfo); err == nil {
+			context.JSON(200, gin.H{"status": "ok", "userInfo": userInfo})
+		} else {
+			context.JSON(400, gin.H{"status": "error"})
 		}
-		context.JSON(200, userInfo)
 	})
 	r.POST("/form", func(context *gin.Context) {
 		var userInfo UserInfo
-		err := context.ShouldBind(userInfo)
-		if err != nil {
-			context.JSON(200, gin.H{"msg": "err"})
-			return
+		if err := context.ShouldBind(&userInfo); err == nil {
+			context.JSON(200, gin.H{"status": "ok", "userInfo": userInfo})
+		} else {
+			context.JSON(400, gin.H{"status": "error"})
 		}
-		context.JSON(200, userInfo)
 	})
 	r.Run(":80")
 }
